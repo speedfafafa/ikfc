@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>IKFC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Bebas+Neue&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/ikfc.css?v=6" />
+  </head>
+  <body>
+    <div id="splash-screen" hidden>
+      <div class="splash-flash" aria-hidden="true"></div>
+      <div class="splash-logo-wrap">
+        <img src="logo.png" alt="IKFC" width="520" height="520" />
+      </div>
+    </div>
+
+    <div id="home-root">
+      <nav class="site-nav" aria-label="主导航">
+        <a class="site-nav__brand" href="home.html" aria-label="IKFC 首页">
+          <span class="site-nav__brand-text">IKFC</span>
+        </a>
+        <div class="site-nav__links" id="nav-links"></div>
+      </nav>
+
+      <section class="hero" aria-label="主视觉区域">
+        <div class="hero__bg-slot" id="hero-bg-slot">
+          <video
+            class="hero__bg-video"
+            src="home.mp4"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="auto"
+            aria-hidden="true"
+          ></video>
+        </div>
+        <div class="hero__bg-image" id="hero-bg-image" aria-hidden="true"></div>
+        <button type="button" class="hero__carousel-btn hero__carousel-btn--prev" aria-label="上一张">‹</button>
+        <button type="button" class="hero__carousel-btn hero__carousel-btn--next" aria-label="下一张">›</button>
+        <div class="hero__page-layer" id="hero-page-layer" hidden></div>
+        <div class="bottom-dock">
+          <div class="bottom-bar">
+            <div class="bottom-bar__emblem">
+              <img src="logo.png" alt="" />
+            </div>
+            <div class="bottom-bar__text">
+              <p>IKFC37 is a challenge tournament.</p>
+              <p>Stay tuned for who gets to be the LAST MAN STANDING this March in Seoul.</p>
+              <p>
+                The new WBC super middleweight champion, Gun-woo Kim the Scarface, will join the tournament as the first
+                contender
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div id="history-video-modal" class="history-modal" hidden>
+        <button type="button" class="history-modal__backdrop" aria-label="关闭"></button>
+        <div class="history-modal__panel" role="dialog" aria-modal="true" aria-label="历史回放">
+          <button type="button" class="history-modal__close" aria-label="关闭">×</button>
+          <video class="history-modal__video" controls playsinline preload="metadata"></video>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var pages = {
+          plans: {
+            title: "PLANS",
+            body: "赛事套票与会员档位将在此公布：单场通行证、赛季通票以及幕后训练体验。测试页面，内容可后续替换。",
+          },
+          upcoming: {
+            title: "UPCOMING EVENT",
+            body: "下一场 IKFC 笼斗之夜：首尔站正在排期。关注对阵表、称重仪式与直播入口。",
+          },
+          history: {
+            title: "HISTORY +",
+            body: "",
+          },
+          fighters: {
+            title: "FIGHTERS",
+            body: "",
+          },
+          application: {
+            title: "FIGHT APPLICATION",
+            body: "职业选手与业余挑战者报名通道（演示）：提交高光剪辑与医疗 cleared 状态。",
+          },
+          donation: {
+            title: "DONATION",
+            body: "支持青少年拳击公益与伤后康复基金。透明公示每一分去向。",
+          },
+          membership: {
+            title: "MEMBERSHIP",
+            body: "会员专属：训练直播、营养方案与线下见面会抽签。",
+          },
+          rankings: {
+            title: "RANKINGS",
+            body: "官方 P4P 与量级排名实时榜：算法结合对手质量、终结与卫冕频率（创意模块）。",
+          },
+          watch: {
+            title: "WATCH LIVE",
+            body: "付费直播 / 多机位回放 / 技术解说音轨。赛前倒计时与弹幕礼仪提示。",
+          },
+          gym: {
+            title: "THE CAMP",
+            body: "合作拳馆地图、公开课预约与 sparring 分级匹配。",
+          },
+        };
+
+        var navOrder = [
+          ["plans", "PLANS"],
+          ["upcoming", "UPCOMING EVENT"],
+          ["history", "HISTORY +"],
+          ["fighters", "FIGHTERS"],
+          ["application", "FIGHT APPLICATION"],
+          ["donation", "DONATION"],
+          ["membership", "MEMBERSHIP"],
+          ["rankings", "RANKINGS"],
+          ["watch", "WATCH LIVE"],
+          ["gym", "THE CAMP"],
+        ];
+
+        var navEl = document.getElementById("nav-links");
+        var heroLayer = document.getElementById("hero-page-layer");
+        var heroSection = document.querySelector(".hero");
+        var heroBg = document.getElementById("hero-bg-slot");
+        var heroVideo = heroBg ? heroBg.querySelector(".hero__bg-video") : null;
+        var historyModal = document.getElementById("history-video-modal");
+        var historyModalVideo = historyModal ? historyModal.querySelector(".history-modal__video") : null;
+        var activeId = "upcoming";
+
+        if (heroVideo) {
+          heroVideo.muted = true;
+          var playAttempt = heroVideo.play();
+          if (playAttempt && typeof playAttempt.catch === "function") {
+            playAttempt.catch(function () {});
+          }
+        }
+
+        function setHistoryBackground(on) {
+          if (!heroSection || !heroVideo) return;
+          if (on) {
+            heroSection.classList.add("hero--history-bg");
+            try {
+              heroVideo.pause();
+            } catch (e) {}
+          } else {
+            heroSection.classList.remove("hero--history-bg");
+            heroVideo.muted = true;
+            var p2 = heroVideo.play();
+            if (p2 && typeof p2.catch === "function") {
+              p2.catch(function () {});
+            }
+          }
+        }
+
+        function closeHistoryModal() {
+          if (!historyModal || !historyModalVideo) return;
+          try {
+            historyModalVideo.pause();
+          } catch (e) {}
+          historyModalVideo.removeAttribute("src");
+          try {
+            historyModalVideo.load();
+          } catch (e) {}
+          historyModal.setAttribute("hidden", "");
+        }
+
+        function openHistoryModal(src) {
+          if (!historyModal || !historyModalVideo) return;
+          historyModalVideo.src = src;
+          historyModal.removeAttribute("hidden");
+          var pm = historyModalVideo.play();
+          if (pm && typeof pm.catch === "function") {
+            pm.catch(function () {});
+          }
+        }
+
+        function primeThumbVideo(v) {
+          if (!v) return;
+          v.muted = true;
+          v.setAttribute("playsinline", "");
+          v.setAttribute("preload", "metadata");
+          var done = false;
+          function seekFirst() {
+            if (done) return;
+            try {
+              if (v.readyState >= 1 && v.duration && !isNaN(v.duration)) {
+                v.currentTime = Math.min(0.06, v.duration * 0.002);
+              } else {
+                v.currentTime = 0.001;
+              }
+              v.pause();
+              done = true;
+            } catch (e) {}
+          }
+          v.addEventListener("loadeddata", seekFirst, { once: true });
+          v.addEventListener("loadedmetadata", seekFirst, { once: true });
+          try {
+            v.load();
+          } catch (e) {}
+        }
+
+        function renderFightersPage() {
+          var roster = [
+            { file: "fighter1.png", name: "Jianyou", weight: "75kg" },
+            { file: "fighter2.png", name: "Ouzhen", weight: "75kg" },
+            { file: "fighter3.png", name: "Baizheng", weight: "73kg" },
+            { file: "fighter4.png", name: "Adi", weight: "80kg" },
+            { file: "fighter5.png", name: "kitoy", weight: "76kg" },
+            { file: "fighter6.png", name: "Tanglang", weight: "79kg" },
+          ];
+          var cards = "";
+          for (var i = 0; i < roster.length; i++) {
+            var f = roster[i];
+            cards +=
+              '<article class="fighter-card">' +
+              '<div class="fighter-card__poster">' +
+              '<img src="' +
+              f.file +
+              '" alt="' +
+              f.name +
+              '" width="360" height="540" loading="lazy" />' +
+              "</div>" +
+              '<div class="fighter-card__meta">' +
+              '<span class="fighter-card__name">' +
+              f.name +
+              "</span>" +
+              '<span class="fighter-card__weight">' +
+              f.weight +
+              "</span>" +
+              "</div>" +
+              "</article>";
+          }
+          return (
+            '<div class="fighters-page">' +
+            '<h1 class="fighters-page__title">FIGHTERS</h1>' +
+            '<p class="fighters-page__lead">拳手海报 · ROSTER</p>' +
+            '<div class="fighter-carousel">' +
+            '<button type="button" class="fighter-carousel__btn fighter-carousel__btn--prev" aria-label="上一张">‹</button>' +
+            '<div class="fighter-carousel__viewport">' +
+            '<div class="fighter-carousel__track">' +
+            cards +
+            "</div></div>" +
+            '<button type="button" class="fighter-carousel__btn fighter-carousel__btn--next" aria-label="下一张">›</button>' +
+            "</div></div>"
+          );
+        }
+
+        var fighterCarouselOnResize = null;
+
+        function teardownFighterCarousel() {
+          if (fighterCarouselOnResize) {
+            window.removeEventListener("resize", fighterCarouselOnResize);
+            fighterCarouselOnResize = null;
+          }
+        }
+
+        function setupFighterCarousel() {
+          teardownFighterCarousel();
+          var root = heroLayer.querySelector(".fighter-carousel");
+          if (!root) return;
+          var viewport = root.querySelector(".fighter-carousel__viewport");
+          var track = root.querySelector(".fighter-carousel__track");
+          var btnPrev = root.querySelector(".fighter-carousel__btn--prev");
+          var btnNext = root.querySelector(".fighter-carousel__btn--next");
+          if (!viewport || !track || !btnPrev || !btnNext) return;
+          var index = 0;
+          var GAP = 14;
+          var TOTAL = 6;
+
+          function visibleCount() {
+            var w = viewport.clientWidth;
+            if (w >= 960) return 6;
+            if (w >= 720) return 4;
+            if (w >= 520) return 3;
+            if (w >= 380) return 2;
+            return 1;
+          }
+
+          function maxIndex() {
+            return Math.max(0, TOTAL - visibleCount());
+          }
+
+          function cardWidthPx() {
+            var vc = visibleCount();
+            return (viewport.clientWidth - (vc - 1) * GAP) / vc;
+          }
+
+          function apply() {
+            var vc = visibleCount();
+            var cw = cardWidthPx();
+            var mi = maxIndex();
+            if (index > mi) index = mi;
+            Array.prototype.forEach.call(track.children, function (card) {
+              card.style.flex = "0 0 " + cw + "px";
+              card.style.width = cw + "px";
+              card.style.maxWidth = "none";
+            });
+            var step = cw + GAP;
+            track.style.transform = "translateX(" + -index * step + "px)";
+            var noScroll = mi === 0;
+            btnPrev.disabled = noScroll;
+            btnNext.disabled = noScroll;
+            btnPrev.setAttribute("aria-disabled", noScroll ? "true" : "false");
+            btnNext.setAttribute("aria-disabled", noScroll ? "true" : "false");
+          }
+
+          function goNext() {
+            var mi = maxIndex();
+            if (mi === 0) return;
+            index = index >= mi ? 0 : index + 1;
+            apply();
+          }
+
+          function goPrev() {
+            var mi = maxIndex();
+            if (mi === 0) return;
+            index = index <= 0 ? mi : index - 1;
+            apply();
+          }
+
+          btnNext.addEventListener("click", goNext);
+          btnPrev.addEventListener("click", goPrev);
+          fighterCarouselOnResize = apply;
+          window.addEventListener("resize", fighterCarouselOnResize);
+          apply();
+        }
+
+        function renderHistoryPage() {
+          return (
+            '<div class="history-page">' +
+            '<h1 class="history-page__title">HISTORY +</h1>' +
+            '<h2 class="history-page__subtitle">历史回放 · HISTORY REPLAY</h2>' +
+            '<div class="history-replays">' +
+            '<button type="button" class="history-card" data-src="history1.mp4">' +
+            '<div class="history-card__thumb">' +
+            '<video muted playsinline preload="metadata" src="history1.mp4"></video>' +
+            "</div>" +
+            '<span class="history-card__date">May 3</span>' +
+            "</button>" +
+            '<button type="button" class="history-card" data-src="history2.mp4">' +
+            '<div class="history-card__thumb">' +
+            '<video muted playsinline preload="metadata" src="history2.mp4"></video>' +
+            "</div>" +
+            '<span class="history-card__date">May 5</span>' +
+            "</button>" +
+            '<button type="button" class="history-card" data-src="history3.mp4">' +
+            '<div class="history-card__thumb">' +
+            '<video muted playsinline preload="metadata" src="history3.mp4"></video>' +
+            "</div>" +
+            '<span class="history-card__date">May 7</span>' +
+            "</button>" +
+            "</div></div>"
+          );
+        }
+
+        heroLayer.addEventListener("click", function (e) {
+          var card = e.target.closest(".history-card");
+          if (!card || !heroLayer.contains(card)) return;
+          var src = card.getAttribute("data-src");
+          if (src) openHistoryModal(src);
+        });
+
+        if (historyModal) {
+          var modalBackdrop = historyModal.querySelector(".history-modal__backdrop");
+          var modalCloseBtn = historyModal.querySelector(".history-modal__close");
+          if (modalBackdrop) modalBackdrop.addEventListener("click", closeHistoryModal);
+          if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeHistoryModal);
+        }
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && historyModal && !historyModal.hasAttribute("hidden")) {
+            closeHistoryModal();
+          }
+        });
+
+        function renderNav() {
+          navEl.innerHTML = "";
+          navOrder.forEach(function (item) {
+            var id = item[0];
+            var label = item[1];
+            var a = document.createElement("a");
+            a.href = "#" + id;
+            a.textContent = label;
+            a.dataset.page = id;
+            if (id === activeId) a.classList.add("is-active");
+            a.addEventListener("click", function (e) {
+              e.preventDefault();
+              setPage(id);
+            });
+            navEl.appendChild(a);
+          });
+        }
+
+        function setPage(id) {
+          activeId = id;
+          Array.prototype.forEach.call(navEl.querySelectorAll("a"), function (a) {
+            a.classList.toggle("is-active", a.dataset.page === id);
+          });
+          var p = pages[id];
+          if (!p) return;
+          closeHistoryModal();
+          teardownFighterCarousel();
+          heroLayer.classList.remove("hero__page-layer--history");
+          heroLayer.classList.remove("hero__page-layer--fighters");
+          if (id === "upcoming") {
+            setHistoryBackground(false);
+            heroLayer.hidden = true;
+            heroLayer.innerHTML = "";
+          } else if (id === "history") {
+            setHistoryBackground(true);
+            heroLayer.hidden = false;
+            heroLayer.classList.add("hero__page-layer--history");
+            heroLayer.innerHTML = renderHistoryPage();
+            Array.prototype.forEach.call(heroLayer.querySelectorAll(".history-card__thumb video"), primeThumbVideo);
+          } else if (id === "fighters") {
+            setHistoryBackground(false);
+            heroLayer.hidden = false;
+            heroLayer.classList.add("hero__page-layer--fighters");
+            heroLayer.innerHTML = renderFightersPage();
+            setupFighterCarousel();
+          } else {
+            setHistoryBackground(false);
+            heroLayer.hidden = false;
+            heroLayer.innerHTML = "<h1>" + p.title + "</h1><p>" + p.body + "</p>";
+          }
+        }
+
+        document.querySelector(".hero__carousel-btn--prev").addEventListener("click", function () {
+          heroBg.style.transform = "translateX(4px)";
+          setTimeout(function () {
+            heroBg.style.transform = "";
+          }, 200);
+        });
+        document.querySelector(".hero__carousel-btn--next").addEventListener("click", function () {
+          heroBg.style.transform = "translateX(-4px)";
+          setTimeout(function () {
+            heroBg.style.transform = "";
+          }, 200);
+        });
+
+        function isLoggedIn() {
+          try {
+            return (
+              localStorage.getItem("ikfc_logged_in") === "1" || sessionStorage.getItem("ikfc_logged_in") === "1"
+            );
+          } catch (e) {
+            return sessionStorage.getItem("ikfc_logged_in") === "1";
+          }
+        }
+
+        function shouldPlaySplash() {
+          try {
+            return (
+              localStorage.getItem("ikfc_show_splash") === "1" || sessionStorage.getItem("ikfc_show_splash") === "1"
+            );
+          } catch (e) {
+            return sessionStorage.getItem("ikfc_show_splash") === "1";
+          }
+        }
+
+        function clearSplashFlag() {
+          try {
+            localStorage.removeItem("ikfc_show_splash");
+            sessionStorage.removeItem("ikfc_show_splash");
+          } catch (e) {
+            try {
+              sessionStorage.removeItem("ikfc_show_splash");
+            } catch (e2) {}
+          }
+        }
+
+        function runSplashThenShow() {
+          var splash = document.getElementById("splash-screen");
+          var root = document.getElementById("home-root");
+          var showSplash = shouldPlaySplash();
+          if (!isLoggedIn()) {
+            window.location.href = "index.html";
+            return;
+          }
+          if (!showSplash) {
+            splash.setAttribute("hidden", "");
+            root.classList.add("is-visible");
+            renderNav();
+            setPage(activeId);
+            return;
+          }
+          splash.removeAttribute("hidden");
+          requestAnimationFrame(function () {
+            setTimeout(function () {
+              splash.classList.add("is-leaving");
+              setTimeout(function () {
+                splash.setAttribute("hidden", "");
+                splash.classList.remove("is-leaving");
+                clearSplashFlag();
+                root.classList.add("is-visible");
+                renderNav();
+                setPage(activeId);
+              }, 2600);
+            }, 1200);
+          });
+        }
+
+        runSplashThenShow();
+      })();
+    </script>
+  </body>
+</html>

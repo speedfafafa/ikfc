@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>IKFC — Join Membership</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Bebas+Neue&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/ikfc.css?v=6" />
+  </head>
+  <body class="login-body">
+    <div class="login-modal" role="dialog" aria-labelledby="login-modal-title">
+      <header class="login-modal__top">
+        <h1 class="login-modal__title" id="login-modal-title">IKFC Join Membership</h1>
+        <button type="button" class="login-modal__close" id="login-close" aria-label="关闭">×</button>
+      </header>
+      <div class="login-modal__body">
+        <div class="login-headline">
+          <p class="login-headline__blood">YOU WANT MORE BLOOD?</p>
+          <p class="login-headline__join">JOIN MEMBERSHIP!</p>
+          <p class="login-headline__billing">ADD BILLING INFORMATION</p>
+        </div>
+        <p class="login-info">
+          please enter your credit or debit card information below. All card information is stored in Healthie with the
+          highest level of security protections. Please note, I require all clients to keep a card on file for the
+          following possible reasons co-pays, automated package payments, and/or late cancellations (per my cancellation
+          policy).
+        </p>
+        <form id="login-form" action="#" method="post">
+          <div class="login-field-label">
+            <span>Credit of Debit Card</span>
+            <span class="login-help" title="Billing is for demo only on this test site">?</span>
+          </div>
+          <div class="login-card-row">
+            <div class="login-card-row__left">
+              <span class="login-card-icon" aria-hidden="true">▭</span>
+              <input type="text" name="card" placeholder="Card number" autocomplete="off" />
+            </div>
+            <div class="login-card-row__right">
+              <input type="text" name="exp" placeholder="MM / YY / CVC" autocomplete="off" />
+            </div>
+          </div>
+          <button class="login-submit" type="submit">Submit</button>
+        </form>
+      </div>
+    </div>
+    <script>
+      document.getElementById("login-close").addEventListener("click", function () {
+        document.querySelector(".login-modal").style.opacity = "0.5";
+        setTimeout(function () {
+          document.querySelector(".login-modal").style.opacity = "1";
+        }, 200);
+      });
+      document.getElementById("login-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        try {
+          localStorage.setItem("ikfc_logged_in", "1");
+          localStorage.setItem("ikfc_show_splash", "1");
+          sessionStorage.setItem("ikfc_logged_in", "1");
+          sessionStorage.setItem("ikfc_show_splash", "1");
+        } catch (err) {}
+        window.location.href = "home.html";
+      });
+    </script>
+  </body>
+</html>
